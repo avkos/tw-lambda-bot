@@ -14,7 +14,7 @@ export default class BaseProvider<BaseDocument extends AnyDocument, Data extends
     }
 
     async getFirst(filter: Partial<Data>): Promise<Data | undefined> {
-        return (await this.model.query(filter).sort("descending").limit(1).exec()).toJSON().map((m: Data) => this.dataFromDB(m))[0]
+        return (await this.getList(filter))[0]
     }
 
     dataFromDB(model: Data): Data {

@@ -27,6 +27,7 @@ describe('main', () => {
         currency = 'USDT'
         orderId = 'someOrderId'
         config.strategy.type = type
+        config.strategy.defaultSetting.minAmountUSDT = 200
         await clearDB(type, symbol)
         api = new BaseApiSpotService(symbol)
     })
@@ -165,6 +166,7 @@ describe('main', () => {
             apiMethods.marketBuy.mockClear()
             await handler({body: {message: 'sell'}})
             const strategyAfter = (await strategyProvider.getById(s.id))!
+            const hold = (await holdProvider.getById(strategyAfter.holdId))!
 
             expect(apiMethods.getPrice).toHaveBeenCalled();
             expect(strategyAfter.symbol).toBe(symbol)
@@ -174,6 +176,8 @@ describe('main', () => {
             expect(strategyAfter.holdId).toBeDefined()
             expect(strategyAfter.unHoldPrice).toBe(2020)
             expect(apiMethods.limitSell).toHaveBeenCalledWith(shouldBeQty, 2020)
+            expect(hold.orderId).toBe(orderId)
+            expect(hold.status).toBe(HOLD_STATUS.STARTED)
         })
 
         it('buy - hold - reuse', async () => {

@@ -45,9 +45,11 @@ class SpotStrategy extends SpotStrategyBase {
         const currentPrice = await this.getPrice()
         const buyPrice = getOrderPrice(this.strategy?.data?.buyOrder)
         const buyQty = getOrderQuantity(this.strategy?.data?.buyOrder)
+        console.log('sell', {currentPrice, buyPrice, buyQty})
         if (buyPrice < currentPrice) {
             if (buyQty > 0) {
                 const sellOrder = await this.marketSell(buyQty)
+                console.log('sellOrder', sellOrder)
                 const {
                     avgPrice,
                     totalQty,
@@ -63,6 +65,7 @@ class SpotStrategy extends SpotStrategyBase {
                 this.setData({sellOrder})
                 this.strategy.status = STRATEGY_STATUS.FINISHED
                 await strategyProvider.update(this.strategy)
+                console.log('this.strategy', this.strategy)
             }
         } else {
             if (buyQty > 0) {
@@ -137,7 +140,7 @@ class SpotStrategy extends SpotStrategyBase {
     }
 
     async recalculateHold(hold: THold): Promise<THold | undefined> {
-        const list = await strategyProvider.getByHoldId(hold.type,hold.symbol,hold.id as string)
+        const list = await strategyProvider.getByHoldId(hold.type, hold.symbol, hold.id as string)
         if (list.length === 0) {
             return undefined
         }
@@ -198,9 +201,10 @@ class SpotStrategy extends SpotStrategyBase {
         }
         if (hold?.qty && hold?.avgPriceProfit && hold?.qty > 0 && hold?.avgPriceProfit > 0) {
             const order = await this.limitSell(hold.qty, hold.avgPriceProfit)
-            hold.orderId = order.orderId
+            hold.orderId = String(order.orderId)
             await holdProvider.update(hold)
         }
+        console.log('createOrUpdateOrder', hold)
     }
 
     async addToHold(): Promise<void> {
@@ -212,6 +216,7 @@ class SpotStrategy extends SpotStrategyBase {
                 status: HOLD_STATUS.STARTED
             })
         }
+        console.log('addToHold', hold)
         this.strategy.holdId = hold.id
         this.strategy.status = STRATEGY_STATUS.HOLD
         await strategyProvider.update(this.strategy)

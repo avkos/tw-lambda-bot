@@ -76,8 +76,8 @@ export default class BaseApiSpotService {
         })
     }
 
-    async cancelOrder(orderId: string|undefined, symbol?: string) {
-        if(!orderId){
+    async cancelOrder(orderId: string | undefined, symbol?: string) {
+        if (!orderId) {
             return
         }
         return new Promise<void>((resolve) => {

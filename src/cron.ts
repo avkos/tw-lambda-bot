@@ -24,7 +24,6 @@ class CheckHold {
 
     async checkOrder(): Promise<void> {
         const orderData: any = await this.api.checkStatus(this.hold.orderId!)
-
         if (!this.hold.data) {
             this.hold.data = {}
         }
@@ -67,7 +66,13 @@ class CheckHold {
 export const handler = async () => {
     const holds = await holdProvider.getCurrentHolds()
     for (const hold of holds) {
+        try {
         const chHold = new CheckHold(hold)
         await chHold.check()
+        } catch (e) {
+            console.log('error', e)
+        }
     }
+
+    return {success: true, statusCode: 200}
 }

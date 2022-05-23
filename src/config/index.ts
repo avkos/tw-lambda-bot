@@ -12,6 +12,6 @@ export default {
         type: 'spot',
         asset: 'ETH',
         currency: 'USDT',
-        defaultSetting: {isReuseHold: true, riskPercent: 0.05, minAmountUSDT: 200}
+        defaultSetting: {isReuseHold: true, riskPercent: 0.05, minAmountUSDT: 11}
     }
 }

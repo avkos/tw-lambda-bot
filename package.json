@@ -6,7 +6,12 @@
   "author": "Oleksii Kosynskyi <oleksii.kosynskyi@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "copy:package": "cp package.json dist/package.json && cp yarn.lock dist/yarn.lock",
+    "clean": "rimraf dist",
+    "prebuild": "yarn clean",
     "build": "tsc --build",
+    "deploy": "cd cdk && yarn deploy",
+    "postbuild": "yarn copy:package && yarn install --production --modules-folder dist/node_modules",
     "test": "jest --config=./test/jest.config.js --runInBand"
   },
   "dependencies": {
@@ -21,6 +26,7 @@
     "@types/uuid": "^8.3.4",
     "jest": "^28.1.0",
     "jest-extended": "^2.0.0",
+    "rimraf": "^3.0.2",
     "ts-jest": "^28.0.2"
   }
 }
