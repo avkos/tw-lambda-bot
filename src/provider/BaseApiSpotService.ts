@@ -3,14 +3,10 @@ import config from '../config'
 
 export default class BaseApiSpotService {
     symbol: string
-    symbolMain: string
-    symbolSub: string
     client: typeof Binance
 
     constructor(symbol: string) {
         this.symbol = symbol
-        this.symbolMain = String(this.symbol).slice(0, 3)
-        this.symbolSub = this.symbol.replace(this.symbolMain, '')
         this.client = new Binance().options({
             APIKEY: config.binance.key,
             APISECRET: config.binance.secret,
@@ -31,13 +27,13 @@ export default class BaseApiSpotService {
         return {total, available: (Number(balances[currency].available) || 0), onOrder}
     }
 
-    async getPrice(symbol?: string) {
+    async getPrice(symbol?: string):Promise<number> {
         symbol = symbol || this.symbol
         const prices = await this.client.prices(symbol)
         return prices && prices[symbol] && Number(prices[symbol])
     }
 
-    async limitSell(quantity: number, price: number) {
+    async limitSell(quantity: number, price: number):Promise<unknown> {
         try {
             return await this.client.sell(this.symbol, Number(quantity).toFixed(3), Number(price).toFixed(2))
         } catch (e) {
@@ -47,7 +43,7 @@ export default class BaseApiSpotService {
 
     }
 
-    async marketSell(quantity: number) {
+    async marketSell(quantity: number):Promise<unknown> {
         try {
             return await this.client.marketSell(this.symbol, Number(quantity).toFixed(3))
         } catch (e) {
@@ -56,7 +52,7 @@ export default class BaseApiSpotService {
         }
     }
 
-    async marketBuy(quantity: number) {
+    async marketBuy(quantity: number):Promise<unknown> {
         try {
             return await this.client.marketBuy(this.symbol, Number(quantity).toFixed(3))
         } catch (e) {
@@ -65,7 +61,7 @@ export default class BaseApiSpotService {
         }
     }
 
-    async checkStatus(orderId: string) {
+    async checkStatus(orderId: string):Promise<string> {
         return new Promise((resolve, reject) => {
             this.client.orderStatus(this.symbol, orderId, (error: Error, orderStatus: string) => {
                 if (error) {
@@ -76,7 +72,7 @@ export default class BaseApiSpotService {
         })
     }
 
-    async cancelOrder(orderId: string | undefined, symbol?: string) {
+    async cancelOrder(orderId: string | undefined, symbol?: string):Promise<unknown> {
         if (!orderId) {
             return
         }
@@ -93,5 +89,3 @@ export default class BaseApiSpotService {
     }
 
 }
-
-module.exports = BaseApiSpotService

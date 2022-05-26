@@ -42,14 +42,15 @@ class SpotStrategy extends SpotStrategyBase {
     }
 
     async sell(): Promise<void> {
+        // get current price
         const currentPrice = await this.getPrice()
         const buyPrice = getOrderPrice(this.strategy?.data?.buyOrder)
         const buyQty = getOrderQuantity(this.strategy?.data?.buyOrder)
-        console.log('sell', {currentPrice, buyPrice, buyQty})
+
         if (buyPrice < currentPrice) {
+            // if buyPrice < currentPrice then sell this amount to profit
             if (buyQty > 0) {
-                const sellOrder = await this.marketSell(buyQty)
-                console.log('sellOrder', sellOrder)
+                const sellOrder = await this.marketSell(buyQty) as any
                 const {
                     avgPrice,
                     totalQty,
@@ -65,9 +66,9 @@ class SpotStrategy extends SpotStrategyBase {
                 this.setData({sellOrder})
                 this.strategy.status = STRATEGY_STATUS.FINISHED
                 await strategyProvider.update(this.strategy)
-                console.log('this.strategy', this.strategy)
             }
         } else {
+            // if buyPrice >= currentPrice then hold this strategy
             if (buyQty > 0) {
                 await this.addToHold()
             }
@@ -75,9 +76,9 @@ class SpotStrategy extends SpotStrategyBase {
     }
 
     async buy(currency: string): Promise<void> {
+        // reuse strategy with status HOLD if exists
         if (this.setting.data.isReuseHold) {
             const currentPrice = await this.getPrice()
-
             const similar = await strategyProvider.getSimilarHold(this.strategy, currentPrice)
             if (similar && similar.id) {
                 if (await this.removeFromHold(similar)) {
@@ -86,8 +87,9 @@ class SpotStrategy extends SpotStrategyBase {
                 }
             }
         }
+        // calculate qty and buy
         const qty = await this.calculatePositionQty(this.symbol, currency)
-        const buyOrder = await this.marketBuy(qty)
+        const buyOrder = await this.marketBuy(qty) as any
         const {avgPrice, totalQty, commission, commissionAsset} = calculateOrderFills(buyOrder && buyOrder.fills)
         buyOrder.commission = commission
         buyOrder.commissionAsset = commissionAsset
@@ -95,6 +97,8 @@ class SpotStrategy extends SpotStrategyBase {
         buyOrder.totalQty = totalQty
         this.setData({buyOrder})
         this.strategy.status = STRATEGY_STATUS.STARTED
+
+        // save strategy to DB
         await strategyProvider.update(this.strategy)
     }
 
@@ -200,14 +204,14 @@ class SpotStrategy extends SpotStrategyBase {
             await this.holdCancel(hold)
         }
         if (hold?.qty && hold?.avgPriceProfit && hold?.qty > 0 && hold?.avgPriceProfit > 0) {
-            const order = await this.limitSell(hold.qty, hold.avgPriceProfit)
+            const order = await this.limitSell(hold.qty, hold.avgPriceProfit) as any
             hold.orderId = String(order.orderId)
             await holdProvider.update(hold)
         }
-        console.log('createOrUpdateOrder', hold)
     }
 
     async addToHold(): Promise<void> {
+        // get or create Hold
         let hold = await holdProvider.getByTypeAndSymbolStatus(this.type, this.symbol, HOLD_STATUS.STARTED)
         if (!hold) {
             hold = await holdProvider.create({
@@ -216,13 +220,15 @@ class SpotStrategy extends SpotStrategyBase {
                 status: HOLD_STATUS.STARTED
             })
         }
-        console.log('addToHold', hold)
+        // add status and holdId to strategy
         this.strategy.holdId = hold.id
         this.strategy.status = STRATEGY_STATUS.HOLD
         await strategyProvider.update(this.strategy)
 
+        // recalculate averageHoldPrice
         const calcHold = await this.recalculateHold(hold)
         if (calcHold) {
+            // create or move hold limit sell order
             await this.createOrUpdateOrder(calcHold)
         }
     }

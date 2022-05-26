@@ -27,7 +27,8 @@ class CheckHold {
         if (!this.hold.data) {
             this.hold.data = {}
         }
-        if (orderData && orderData.orderId && getOrderStatus(this.hold.data.sellOrder) !== String(orderData.status)) {
+        // update hold data if order changed
+        if (orderData && orderData.orderId && (orderData.orderId!==this.hold.orderId || getOrderStatus(this.hold.data.sellOrder) !== String(orderData.status))) {
             this.hold.data.sellOrder = orderData
             const {avgPrice, totalQty, commission, commissionAsset} = calculateOrderFills(
                 orderData && orderData.fills)
@@ -40,16 +41,19 @@ class CheckHold {
     }
 
     async unHold(): Promise<void> {
+        // get all strategies which related with this hold
         const strategies = await strategyProvider.getByHoldId(this.hold.type, this.hold.symbol, this.hold.id!)
         if (strategies && strategies.length > 0) {
             for (const s of strategies) {
                 try {
+                    // calculate profit for each strategy
                     const qty = getOrderQuantity(s.data?.buyOrder)
                     const commission = this.hold.data.sellOrder.totalQty > 0 ? this.hold.data.sellOrder.commission * qty /
                         this.hold.data.sellOrder.totalQty : 0
                     const sell = {...this.hold.data.sellOrder, totalQty: qty, commission}
                     s.profit = calculateProfit(s.data?.buyOrder, sell)
                     s.data = {...s.data, sellOrder: sell}
+                    // save UNHOLD status, profit, and data to DB
                     await strategyProvider.update({...s, status: STRATEGY_STATUS.UNHOLD})
                 } catch (e) {
                     console.log('error set profit', {s, hold: this.hold})
@@ -57,8 +61,8 @@ class CheckHold {
             }
         }
 
+        // update hold status to FINISHED
         this.hold.status = HOLD_STATUS.FINISHED
-
         await holdProvider.update(this.hold)
     }
 }

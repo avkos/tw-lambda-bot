@@ -31,7 +31,7 @@ describe('main', () => {
         await clearDB(type, symbol)
         api = new BaseApiSpotService(symbol)
     })
-    beforeEach(async() => {
+    beforeEach(async () => {
         await clearDB(type, symbol)
         balance = 1200
         currentPrice = 2000
@@ -43,7 +43,7 @@ describe('main', () => {
             .mockImplementation(async () => currentPrice);
         apiMethods.checkStatus = jest
             .spyOn(BaseApiSpotService.prototype, 'checkStatus')
-            .mockImplementation(async () => ({status: ORDER.STATUS.NEW, orderId}));
+            .mockImplementation(async () => ({status: ORDER.STATUS.NEW, orderId}) as any);
         apiMethods.marketSell = jest.spyOn(BaseApiSpotService.prototype, 'marketSell')
             .mockImplementation(async (qty: number) => ({
                 avgPrice: currentPrice,
@@ -218,7 +218,7 @@ describe('main', () => {
         it('check when wait', async () => {
             apiMethods.checkStatus = jest
                 .spyOn(BaseApiSpotService.prototype, 'checkStatus')
-                .mockImplementation(async () => ({status: ORDER.STATUS.NEW, orderId}));
+                .mockImplementation(async () => ({status: ORDER.STATUS.NEW, orderId}) as any);
             // buy
             await handler({body: {message: 'buy'}})
             const currentStrategy = (await strategyProvider.getCurrentStrategy(type, symbol))!
@@ -244,7 +244,7 @@ describe('main', () => {
         it('check when profit', async () => {
             apiMethods.checkStatus = jest
                 .spyOn(BaseApiSpotService.prototype, 'checkStatus')
-                .mockImplementation(async () => ({status: ORDER.STATUS.FILLED, orderId}));
+                .mockImplementation(async () => ({status: ORDER.STATUS.FILLED, orderId}) as any);
 
             // buy
             await handler({body: {message: 'buy'}})

@@ -20,18 +20,15 @@ const getAction = (req: any): TAction => {
             action = data.order && data.order.action
         }
     }
-    console.log('action', action)
 
     return action as TAction
 }
 const signalSpotProcessing = async (action: string, symbol: string, currency: string, type: string): Promise<void> => {
     try {
-        console.log({action, symbol, currency, type})
         const strategy = new SpotStrategy(symbol, type)
         await strategy.init()
         if (action === STRATEGY_ACTION_SELL) {
             const lastStrategy: TStrategy | undefined = await strategyProvider.getCurrentStrategy(type, symbol)
-            console.log('lastStrategy',lastStrategy)
             if (lastStrategy) {
                 strategy.setStrategy(lastStrategy)
             }
