@@ -1,7 +1,7 @@
 import settingProvider from '../src/db/provider/setting';
 import holdProvider from '../src/db/provider/hold';
 import strategyProvider from '../src/db/provider/strategy';
-import {STRATEGY_STATUS} from "../dist/constants";
+import {STRATEGY_STATUS} from "../src/constants";
 import config from "../src/config";
 import {clearDB} from "./helper";
 

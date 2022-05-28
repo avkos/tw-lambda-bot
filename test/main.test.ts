@@ -8,7 +8,7 @@ import holdProvider from "../src/db/provider/hold";
 import {STRATEGY_STATUS} from "../src/constants";
 import {clearDB} from "./helper";
 import {getOrderQuantity, getOrderPrice} from "../src/helper/order";
-import {HOLD_STATUS} from "../dist/constants";
+import {HOLD_STATUS} from "../src/constants";
 
 jest.mock('../src/provider/BaseApiSpotService');
 
