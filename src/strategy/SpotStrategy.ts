@@ -232,6 +232,35 @@ class SpotStrategy extends SpotStrategyBase {
             await this.createOrUpdateOrder(calcHold)
         }
     }
+
+    async stat() {
+        const type = this.setting.type
+        const symbol = this.setting.symbol
+
+        const prs = []
+
+        prs.push(holdProvider.getFirst({type, symbol, status: HOLD_STATUS.STARTED}))
+        prs.push(strategyProvider.count({type, symbol, status: STRATEGY_STATUS.HOLD}))
+        prs.push(strategyProvider.getList({type, symbol}, {order: 'descending'}))
+        prs.push(strategyProvider.calculateProfit(type, symbol))
+
+        const [hold, holdCount, items, profit] = await Promise.all(prs)
+
+        return {
+            holds: {
+                [type]: {
+                    avgPrice: hold.avgPriceProfit,
+                    qty: hold.qty,
+                    cnt: holdCount,
+                    qtyUSDT: (Number(hold.qty) || 0) * (Number(hold.avgPriceProfit) || 0),
+                    symbol: hold.symbol
+                }
+            },
+            profits: {[type]: profit},
+            types: [type],
+            items: items.sort((i1: any, i2: any) => i1.createdAt > i2.createdAt ? -1 : 1)
+        }
+    }
 }
 
 export default SpotStrategy

@@ -1,20 +1,48 @@
 import {v4} from 'uuid'
 import {AnyDocument} from "dynamoose/dist/Document";
 import {Model} from "dynamoose/dist/Model";
+import {Condition, ConditionInitalizer} from "dynamoose/dist/Condition";
+import config from "../../config";
 
-export default class BaseProvider<BaseDocument extends AnyDocument, Data extends { data?: string | object, id?: string, createdAt?: string | number }> {
+export default class BaseProvider<BaseDocument extends AnyDocument, Data extends { data?: string | object, id?: string, createdAt?: string | number, user?: string }> {
     model: Model
+    user: string
 
     constructor(model: Model) {
         this.model = model
+        this.user = config.user.email
     }
 
-    async getList(filter: Partial<Data>): Promise<Data[]> {
-        return (await this.model.query(filter).exec()).toJSON().map((m: Data) => this.dataFromDB(m))
+    addUserToFilter(filter: Partial<Data> | ConditionInitalizer) {
+        if (filter instanceof Condition) {
+            return filter
+        }
+
+        return {...(filter as Object), user: this.user}
+    }
+
+    async count(filter: Partial<Data> | ConditionInitalizer) {
+        const res = await this.model.query(this.addUserToFilter(filter)).count().exec()
+        return res.count
+    }
+
+    async getList(filter: Partial<Data> | ConditionInitalizer, options: { limit?: number, order?: 'descending' | 'ascending' } = {}): Promise<Data[]> {
+        const {limit, order} = options
+        let query = this.model.query(this.addUserToFilter(filter))
+        if (order) {
+            // query.using('createdAt')
+            query.filter('createdAt').ge(+new Date - 365 * 24 * 60 * 60 * 1000)
+            query.sort(order)
+        }
+        if (limit) {
+            query.limit(limit)
+        }
+
+        return (await query.exec()).toJSON().map((m: Data) => this.dataFromDB(m))
     }
 
     async getFirst(filter: Partial<Data>): Promise<Data | undefined> {
-        return (await this.getList(filter))[0]
+        return (await this.getList(this.addUserToFilter(filter), {limit: 1}))[0]
     }
 
     dataFromDB(model: Data): Data {
@@ -43,10 +71,11 @@ export default class BaseProvider<BaseDocument extends AnyDocument, Data extends
     }
 
     async create(data: Data): Promise<Data> {
-        const d ={
-            ...this.dataToDB(data),
+        const d = {
             id: this.getRandomId(),
             createdAt: this.getNowUnix(),
+            user: this.user,
+            ...this.dataToDB(data),
         }
 
         const s: BaseDocument = await this.model.create(d) as BaseDocument;
@@ -65,7 +94,6 @@ export default class BaseProvider<BaseDocument extends AnyDocument, Data extends
         }
     }
 
-
     getRandomId(): string {
         return v4();
     }
@@ -76,7 +104,10 @@ export default class BaseProvider<BaseDocument extends AnyDocument, Data extends
 
     async deleteById(id: string | undefined): Promise<void> {
         if (id) {
-            return this.model.delete(id)
+            const el = await this.getById(id)
+            if (el && el?.user === this.user) {
+                return this.model.delete(id)
+            }
         }
     }
 
@@ -85,7 +116,7 @@ export default class BaseProvider<BaseDocument extends AnyDocument, Data extends
             return undefined
         }
         const res = await this.model.get(id)
-        if(!res){
+        if (!res) {
             return undefined
         }
         return this.dataFromDB(res.toJSON() as Data)

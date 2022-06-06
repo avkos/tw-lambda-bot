@@ -24,6 +24,7 @@ declare global {
         avgPrice?: number
         avgPriceProfit?: number
         orderId?: string
+        user?: string
         qty?: number
         createdAt?: string | number
     }
@@ -32,6 +33,7 @@ declare global {
         type: string
         symbol: string
         status?: string
+        user?: string
         data: { isReuseHold: boolean, riskPercent: number, minAmountUSDT: number }
         createdAt?: string | number
     }
@@ -41,6 +43,7 @@ declare global {
         symbol: string
         status?: string
         profit?: number
+        user?: string
         data?: {
             buyOrder?: TOrder,
             sellOrder?: TOrder,

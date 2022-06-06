@@ -9,7 +9,7 @@ export class StrategyDocument extends Document {
     status?: string
     profit?: number
     data?: string
-    createdAt?: Date
+    createdAt?: number
     holdId?: string
     unHoldPrice?: number
 }
@@ -23,6 +23,13 @@ export default dynamoose.model<StrategyDocument>(config.tables.strategy, {
         type: String,
         index: {
             name: "type",
+            global: true
+        }
+    },
+    user: {
+        type: String,
+        index: {
+            name: "user",
             global: true
         }
     },
@@ -42,7 +49,10 @@ export default dynamoose.model<StrategyDocument>(config.tables.strategy, {
     },
     profit: Number,
     data: String,
-    createdAt: Date,
+    createdAt: {
+        type: Number,
+        rangeKey: true
+    },
     holdId: {
         type: String,
         index: {

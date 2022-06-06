@@ -15,6 +15,7 @@ module.exports = {
 	coverageReporters: ['json'],
 	setupFilesAfterEnv: ['<rootDir>/test/setup.js'],
 	testMatch: ['<rootDir>/test/**/*.(spec|test).(js|ts)'],
+	modulePathIgnorePatterns: ['<rootDir>/dist/','<rootDir>/cdk/'],
 	restoreMocks: true,
 	resetModules: true,
 	coverageDirectory: '.coverage/integration',

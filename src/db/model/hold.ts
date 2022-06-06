@@ -12,7 +12,7 @@ export class HoldDocument extends Document {
     avgPriceProfit?: number
     orderId?: string
     qty?: number
-    createdAt?: Date
+    createdAt?: number
 }
 
 export default dynamoose.model<HoldDocument>(config.tables.hold, {
@@ -41,12 +41,23 @@ export default dynamoose.model<HoldDocument>(config.tables.hold, {
             global: true
         }
     },
+    user: {
+        type: String,
+        index: {
+            name: "user",
+            global: true
+        }
+    },
     data: String,
     avgPrice: Number,
     avgPriceProfit: Number,
     orderId: String,
     qty: Number,
-    createdAt: Date,
+    createdAt: {
+        type: Number,
+        rangeKey: true
+    },
+
 }, {
     // @ts-ignore-next-line
     saveUnknown: false

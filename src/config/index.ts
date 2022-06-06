@@ -9,9 +9,17 @@ export default {
         secret: process.env.BINANCE_API_SECRET as string
     },
     strategy: {
-        type: 'spot',
+        type: 'most',
         asset: 'ETH',
         currency: 'USDT',
         defaultSetting: {isReuseHold: true, riskPercent: 0.05, minAmountUSDT: 11}
+    },
+    user: {
+        email: 'admin@admin.com'
+    },
+    cognito: {
+        userPoolId: process.env.AWS_COGNITO_USER_POOL_ID,
+        clientId: process.env.AWS_COGNITO_APP_CLIENT_ID,
+        region: process.env.AWS_COGNITO_REGION,
     }
 }

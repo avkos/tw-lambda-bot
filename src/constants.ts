@@ -89,3 +89,4 @@ export const DEFAULT_STRATEGY_OPTIONS = {
 }
 export const STRATEGY_ACTION_SELL = 'sell'
 export const STRATEGY_ACTION_BUY = 'buy'
+export const BOT_STAT = 'stat'

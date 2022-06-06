@@ -10,7 +10,8 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "deploy": "yarn cdk deploy"
+    "deploy": "yarn cdk deploy TwBot",
+    "deploy:front": "yarn cdk deploy TwBotFront"
   },
   "devDependencies": {
     "aws-cdk": "2.25.0",
